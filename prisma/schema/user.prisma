@@ -1,0 +1,10 @@
+model User {
+  id Int @id @default(autoincrement())
+
+  // Normal Fields
+  firstnae String @map("first_nae")
+
+  // Direct Relations
+
+  @@map("user")
+}
