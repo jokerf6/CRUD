@@ -1,6 +1,6 @@
 export const generateController = (name: string) => {
   return `
-import { Body, Controller, Get, Param, Patch, Post, Res } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Res,Delete } from '@nestjs/common';
 import { ApiQuery, ApiTags, PartialType } from '@nestjs/swagger';
 import { Roles } from '@prisma/client';
 import { Response } from 'express';
@@ -11,13 +11,12 @@ import { Filter } from 'src/decorators/param/filter.decorator';
 import { RequiredIdParam } from 'src/dtos/params/id-param.dto';
 import { PrismaService } from 'src/globals/services/prisma.service';
 import { ResponseService } from 'src/globals/services/response.service';
-import { CurrentUser } from '../../../authentication/decorators/current-user.decorator';
 import {
   Create${name}DTO,
   Filter${name}DTO,
   Update${name}DTO,
 } from './dto/${name.toLowerCase()}.dto';
-import { ${name}Service } from './services/${name.toLowerCase()}.service';
+import { ${name}Service } from './${name.toLowerCase()}.service';
 
 const prefix = '${name}';
 
@@ -34,7 +33,7 @@ export class ${name}Controller {
   @Auth({})
   async create(
     @Res() res: Response,
-    @Body() body: Create${name}DTO
+    @Body() body: Create${name.at(0)?.toUpperCase() + name.slice(1)}DTO
   ) {
     await this.prisma.validateBody(body);
     await this.service.create(body);
@@ -47,7 +46,7 @@ export class ${name}Controller {
   @ApiRequiredIdParam()
   async update(
     @Res() res: Response,
-    @Body() body: Update${name}DTO,
+    @Body() body: Update${name.at(0)?.toUpperCase() + name.slice(1)}DTO,
     @Param() { id }: RequiredIdParam,
   ) {
     await this.prisma.returnUnique('${name.toLowerCase()}', 'id', id);
@@ -57,11 +56,15 @@ export class ${name}Controller {
   @Get(['/', '/:id'])
   @Auth({
   })
-  @ApiQuery({ type: PartialType(Filter${name}DTO) })
+  @ApiQuery({ type: PartialType(Filter${
+    name.at(0)?.toUpperCase() + name.slice(1)
+  }DTO) })
   async findAll(
     @Res() res: Response,
     @LocaleHeader() locale: Locale,
-    @Filter({ dto: Filter${name}DTO }) filters: Filter${name}DTO,
+    @Filter({ dto: Filter${
+      name.at(0)?.toUpperCase() + name.slice(1)
+    }DTO }) filters: Filter${name.at(0)?.toUpperCase() + name.slice(1)}DTO,
   ) {
 
   if(filters.id) await this.prisma.returnUnique('${name.toLowerCase()}', 'id', id);
@@ -75,7 +78,6 @@ export class ${name}Controller {
       { total },
     );
   }
-}
 
   @Delete('/:id')
   @Auth({ permissions: [prefix] })
@@ -88,6 +90,6 @@ export class ${name}Controller {
       'delete_${name.toLowerCase()}_successfully',
     );
   }
-
+}
 `;
 };

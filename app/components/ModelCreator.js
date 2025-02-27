@@ -43,6 +43,9 @@ export default function ModelCreator() {
         type: field.isRelation ? field.relatedModel : field.type,
         isRelation: field.isRelation,
         relationType: field.relationType,
+        required: field.required,
+        filterAble: field.filterAble,
+        sortAble: field.sortAble,
       })),
     };
 
@@ -54,7 +57,6 @@ export default function ModelCreator() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(modelDefinition),
       });
-      console.log("a777777777");
     } catch (error) {
       console.error("Error:", error);
       alert(`An error occurred while creating the model: ${error.message}`);

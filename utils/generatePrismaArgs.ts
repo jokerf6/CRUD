@@ -2,14 +2,17 @@ import { Field } from "../types/field.type";
 
 export const generatePrismaArgs = (name: string, fields: Field[]) => {
   return `
-import { Prisma, Withdraw } from '@prisma/client';
+import { Prisma, ${name} } from '@prisma/client';
 import { paginateOrNot } from 'src/globals/helpers/pagination-params';
 import { filterKey, orderKey } from 'src/globals/helpers/prisma-filters';
-import { Filter${name.toLowerCase()}DTO } from '../dto/${name.toLowerCase()}.dto';
+import { Filter${name}DTO } from '../dto/${name.toLowerCase()}.dto';
 
-export const get${name.toLowerCase()}Args = (query: Filter${name.toLowerCase()}DTO) => {
-  const { page, limit, ...filter } = query;
+export const get${
+    name.at(0)?.toUpperCase() + name.slice(1)
+  }Args = (query: Filter${name.at(0)?.toUpperCase() + name.slice(1)}DTO) => {
+  const {orderBy, page, limit, ...filter } = query;
   const searchArray = [
+      filterKey<${name}>(filter, 'id'),
    ${fields
      .map((f: Field, idx: number) => {
        if (f.filterAble) {
@@ -20,14 +23,15 @@ export const get${name.toLowerCase()}Args = (query: Filter${name.toLowerCase()}D
      `;
        }
      })
-     .join("\n\n")}
+     .join("\n")}
   ].filter(Boolean) as Prisma.${name}WhereInput[];
 
   const orderArray = [
-    
+          orderKey('id', 'id', orderBy),
+
 ${fields
   .map((f: Field, idx: number) => {
-    if (f.sortAble) {
+    if (f.sortAble && !f.isRelation) {
       return `
          orderKey('${f.name.toLowerCase()}', '${f.name.toLowerCase()}', orderBy)${
         idx + 1 < fields.length ? "," : ""
@@ -35,7 +39,7 @@ ${fields
      `;
     }
   })
-  .join("\n\n")}
+  .join("\n")}
     ].filter(Boolean) as Prisma.${name}OrderByWithRelationInput[];
 
 
@@ -48,25 +52,27 @@ ${fields
   } as Prisma.${name}FindManyArgs;
 };
 
-export const select${name}OBJ = () => {
+export const select${name.at(0)?.toUpperCase() + name.slice(1)}OBJ = () => {
   const selectArgs: Prisma.${name}Select = {
-    id: true,
+   id:true,
     ${fields
       .map((f: Field) => {
-        if (!f.isRelation) {
+        if (!f.isRelation && f.filterAble) {
           return `
-    ${name}:true   
+    ${f.name}:true   
      `;
         }
       })
-      .join("\n\n")}
+      .join(",")}
   };
   return selectArgs;
 };
-export const get${name}ArgsWithSelect = () => {
+export const get${
+    name.at(0)?.toUpperCase() + name.slice(1)
+  }ArgsWithSelect = () => {
   return {
-    select: select${name}OBJ(),
-  } satisfies Prisma.${name}FindManyArgs;
+    select: select${name.at(0)?.toUpperCase() + name.slice(1)}OBJ(),
+  } satisfies Prisma.${name.at(0)?.toUpperCase() + name.slice(1)}FindManyArgs;
 };
 
     

@@ -9,11 +9,11 @@ import {
   Create${name}DTO,
   Filter${name}DTO,
   Update${name}DTO,
-} from '../dto/${name.toLowerCase()}.dto';
+} from './dto/${name.toLowerCase()}.dto';
 import {
   get${name}Args,
   get${name}ArgsWithSelect,
-} from '../prisma-args/${name}.prisma.args';
+} from './prisma-args/${name.toLowerCase()}.prisma.args';
 
 @Injectable()
 export class ${name}Service {
@@ -21,7 +21,7 @@ export class ${name}Service {
     private readonly prisma: PrismaService,
   ) {}
 
-  async create(body: Create${name}DTO) {
+  async create(body: Create${name.at(0)?.toUpperCase() + name.slice(1)}DTO) {
 
       await this.prisma.${name.toLowerCase()}.create({
         data: {
@@ -31,13 +31,17 @@ export class ${name}Service {
 
   }
 
-  async update(id: Id, body: Update${name}DTO) {
+  async update(id: Id, body: Update${
+    name.at(0)?.toUpperCase() + name.slice(1)
+  }DTO) {
    
     await this.prisma.${name.toLowerCase()}.update({ where: { id }, data: body });
    
   }
 
-  async findAll(locale: Locale, filters: Filter${name}DTO) {
+  async findAll(locale: Locale, filters: Filter${
+    name.at(0)?.toUpperCase() + name.slice(1)
+  }DTO) {
     const args = get${name}Args(filters);
     const argsWithSelect = get${name}ArgsWithSelect();
 

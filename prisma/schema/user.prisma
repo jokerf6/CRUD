@@ -1,8 +1,9 @@
-model User {
+model user {
   id Int @id @default(autoincrement())
 
   // Normal Fields
-  firstnae String @map("first_nae")
+  first String
+  last  String
 
   // Direct Relations
 

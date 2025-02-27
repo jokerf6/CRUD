@@ -4,6 +4,7 @@ const mapDtoType = (type: never) => {
   const dtoTypeMap = {
     Int: "number",
     String: "string",
+    Image: "string",
     Boolean: "boolean",
     DateTime: "Date",
   };
@@ -19,10 +20,13 @@ export const generateDTO = (name: string, fields: Field[]) => {
   import { ValidateBoolean } from 'src/decorators/dto/validators/validate-boolean.decorator';
   import { PartialType } from '@nestjs/swagger';
   import { SortProp } from 'src/decorators/dto/sort-prop.decorator';
-  
-  export class Create${name}DTO {
+  import { PaginationParamsDTO } from 'src/dtos/params/pagination-params.dto';
+  import { ValidateOrder } from 'src/decorators/dto/validators/validate-order.decorator';
+
+  export class Create${name.at(0)?.toUpperCase() + name.slice(1)}DTO {
     ${fields
       .map((f: Field) => {
+        console.log(f);
         const decorators = [];
         const type = f.isRelation ? "Int" : mapDtoType(f.type as never);
 
@@ -31,26 +35,32 @@ export const generateDTO = (name: string, fields: Field[]) => {
 
         if (f.type === "Image")
           decorators.push(
-            `@ApiProperty({ type: String, format: 'binary',required: ${f.required} })`
+            `@ApiProperty({ type: String, format: 'binary',required: ${
+              f.required ? true : false
+            } })`
           );
         if (f.type === "DateTime") decorators.push(`@ValidateDate()`);
         if (f.type === "Int") decorators.push(`@ValidateNumber()`);
         if (f.type === "Boolean") decorators.push(`@ValidateBoolean()`);
 
         return `
-    ${decorators}
+    ${decorators.join("\n")}
     ${f.isRelation ? f.name.toLowerCase() + "Id" : f.name}${
           f.required ? "" : "?"
         }: ${type};`;
       })
-      .join("\n\n")}
+      .join("\n")}
   }
-  export class Update${name}DTO extends PartialType(Create${name}DTO) {}    
+  export class Update${
+    name.at(0)?.toUpperCase() + name.slice(1)
+  }DTO extends PartialType(Create${
+    name.at(0)?.toUpperCase() + name.slice(1)
+  }DTO) {}    
   
-  export class Sort${name}DTO {
-    @SortProp()
-    id?: SortOptions;
-  
+  export class Sort${name.at(0)?.toUpperCase() + name.slice(1)}DTO {
+  @SortProp()
+  @ApiProperty({ example: 'asc' })
+  id?: SortOptions;
   ${fields
     .map((f) => {
       if (f.sortAble === true) {
@@ -62,17 +72,40 @@ export const generateDTO = (name: string, fields: Field[]) => {
     .join("\n\n")}
     
   }
-    export class Filter${name}DTO extends PaginationParamsDTO {
-  ${fields
-    .map((f) => {
-      if (f.sortAble === true) {
-        return `
-          @SortProp()
-    ${f.isRelation ? f.name.toLowerCase() + "Id" : f.name}?: SortOptions;`;
-      }
-    })
-    .join("\n\n")}
-    
+    export class Filter${
+      name.at(0)?.toUpperCase() + name.slice(1)
+    }DTO extends PaginationParamsDTO {
+        
+  @ValidateNumber()
+    id?: Id;
+
+     ${fields
+       .map((f: Field) => {
+         console.log(f);
+         const decorators = [];
+         const type = f.isRelation ? "Int" : mapDtoType(f.type as never);
+
+         if (f.required) decorators.push(`@Required()`);
+         else decorators.push(`@Optional()`);
+
+         if (f.type === "Image")
+           decorators.push(
+             `@ApiProperty({ type: String, format: 'binary',required: ${
+               f.required ? true : false
+             } })`
+           );
+         if (f.type === "DateTime") decorators.push(`@ValidateDate()`);
+         if (f.type === "Int") decorators.push(`@ValidateNumber()`);
+         if (f.type === "Boolean") decorators.push(`@ValidateBoolean()`);
+
+         return `
+    @Optional()
+    ${f.isRelation ? f.name.toLowerCase() + "Id" : f.name}?: ${type};`;
+       })
+       .join("\n")}
+
+      @ValidateOrder() 
+      orderBy?: Sort${name}DTO[];
   }
   `;
 };
